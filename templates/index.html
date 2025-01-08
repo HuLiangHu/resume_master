@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简历大师 - 智能简历分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .analysis-section {
+            display: none;
+            margin-top: 20px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            font-size: 24px;
+            font-weight: bold;
+            border: 5px solid #007bff;
+        }
+        .analysis-card {
+            margin-bottom: 1.5rem;
+        }
+        .analysis-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .analysis-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .analysis-list li:before {
+            position: absolute;
+            left: 0;
+        }
+        .advantage li:before {
+            content: "💡";
+        }
+        .disadvantage li:before {
+            content: "❌";
+        }
+        .suggestion li:before {
+            content: "✅";
+        }
+        .section-title {
+            color: #0d6efd;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .interview-question {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .interview-analysis {
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        .interview-example {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">简历大师</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title text-center mb-4">📝 智能简历分析助手</h5>
+                        <div class="alert alert-info mb-4" role="alert">
+                            <p class="mb-0">上传简历和意向岗位JD，一键生成简历质量和岗位匹配度评估报告，提供优化建议和模拟面试。</p>
+                            <hr>
+                            <ul class="mb-0">
+                                <li>专业评估简历质量和岗位匹配度</li>
+                                <li>针对性建议帮助优化简历内容</li>
+                                <li>模拟面试问题助您提前准备</li>
+                            </ul>
+                        </div>
+                        <form id="resumeForm">
+                            <div class="mb-3">
+                                <label for="resume" class="form-label">上传简历（支持PDF、Word格式）</label>
+                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="jd" class="form-label">意向岗位JD</label>
+                                <textarea class="form-control" id="jd" name="jd" rows="4" required placeholder="请粘贴职位描述"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">开始分析</button>
+                        </form>
+
+                        <div class="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">分析中...</span>
+                            </div>
+                            <p class="mt-2">正在分析您的简历，请稍候...</p>
+                        </div>
+
+                        <div id="analysisResult" class="analysis-section">
+                            <h5 class="text-center mb-4">简历分析报告</h5>
+                            
+                            <!-- 评分卡片 -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h6>简历质量评分</h6>
+                                            <div class="score-circle" id="qualityScore"></div>
+                                            <div class="mt-3">
+                                                <div id="qualityAnalysis">
+                                                    <h6 class="section-title">详细分析</h6>
+                                                    <ul class="analysis-list advantage" id="qualityAdvantages"></ul>
+                                                    <ul class="analysis-list disadvantage" id="qualityDisadvantages"></ul>
+                                                    <ul class="analysis-list suggestion" id="qualitySuggestions"></ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h6>岗位匹配度评分</h6>
+                                            <div class="score-circle" id="matchScore"></div>
+                                            <div class="mt-3">
+                                                <div id="matchAnalysis">
+                                                    <h6 class="section-title">岗位要求分析</h6>
+                                                    <div id="jobRequirements"></div>
+                                                    <h6 class="section-title mt-3">匹配度分析</h6>
+                                                    <ul class="analysis-list advantage" id="matchAdvantages"></ul>
+                                                    <ul class="analysis-list disadvantage" id="matchDisadvantages"></ul>
+                                                    <ul class="analysis-list suggestion" id="matchSuggestions"></ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 优化建议卡片 -->
+                            <div class="card analysis-card">
+                                <div class="card-body">
+                                    <h6 class="section-title">优化建议</h6>
+                                    <div id="optimizationSuggestions"></div>
+                                </div>
+                            </div>
+
+                            <!-- 模拟面试卡片 -->
+                            <div class="card analysis-card">
+                                <div class="card-body">
+                                    <h6 class="section-title">模拟面试问题</h6>
+                                    <div id="mockInterview" class="accordion"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('resumeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const file = document.getElementById('resume').files[0];
+            const jd = document.getElementById('jd').value.trim();
+            
+            // 验证文件
+            if (!file) {
+                alert('请选择文件');
+                return;
+            }
+            
+            // 验证JD
+            if (!jd) {
+                alert('请输入职位描述');
+                return;
+            }
+
+            // 检查文件类型
+            const fileName = file.name.toLowerCase();
+            const fileExt = fileName.substring(fileName.lastIndexOf('.') + 1);
+            if (!['pdf', 'doc', 'docx'].includes(fileExt)) {
+                alert('请上传PDF或Word格式的文件（.pdf, .doc, .docx）');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('resume', file);
+            formData.append('jd', jd);
+
+            // 显示加载动画
+            document.querySelector('.loading').style.display = 'block';
+            document.getElementById('analysisResult').style.display = 'none';
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || '分析失败，请重试');
+                }
+
+                try {
+                    // 更新质量评分
+                    document.getElementById('qualityScore').textContent = result.quality_score || '0';
+                    
+                    // 更新质量分析
+                    const qualityAdvantages = document.getElementById('qualityAdvantages');
+                    const qualityDisadvantages = document.getElementById('qualityDisadvantages');
+                    const qualitySuggestions = document.getElementById('qualitySuggestions');
+                    
+                    if (result.quality_analysis) {
+                        qualityAdvantages.innerHTML = (result.quality_analysis.advantages || []).map(adv => `<li>${adv}</li>`).join('');
+                        qualityDisadvantages.innerHTML = (result.quality_analysis.disadvantages || []).map(dis => `<li>${dis}</li>`).join('');
+                        qualitySuggestions.innerHTML = (result.quality_analysis.suggestions || []).map(sug => `<li>${sug}</li>`).join('');
+                    }
+
+                    // 更新匹配度评分
+                    document.getElementById('matchScore').textContent = result.match_score || '0';
+                    
+                    // 更新岗位要求
+                    const jobRequirements = document.getElementById('jobRequirements');
+                    if (result.job_analysis) {
+                        const keySkills = Array.isArray(result.job_analysis.key_skills) ? 
+                            result.job_analysis.key_skills.join(', ') : 
+                            result.job_analysis.key_skills;
+                            
+                        const experience = Array.isArray(result.job_analysis.experience) ? 
+                            result.job_analysis.experience.join(', ') : 
+                            result.job_analysis.experience;
+                            
+                        const otherReqs = Array.isArray(result.job_analysis.other_requirements) ? 
+                            result.job_analysis.other_requirements.join(', ') : 
+                            result.job_analysis.other_requirements;
+                        
+                        jobRequirements.innerHTML = `
+                            <div class="mb-2"><strong>关键技能要求：</strong>${keySkills || '无'}</div>
+                            <div class="mb-2"><strong>工作经验要求：</strong>${experience || '无'}</div>
+                            <div class="mb-2"><strong>其他重要要求：</strong>${otherReqs || '无'}</div>
+                        `;
+                    }
+                    
+                    // 更新匹配度分析
+                    const matchAdvantages = document.getElementById('matchAdvantages');
+                    const matchDisadvantages = document.getElementById('matchDisadvantages');
+                    const matchSuggestions = document.getElementById('matchSuggestions');
+                    
+                    if (result.match_analysis) {
+                        matchAdvantages.innerHTML = (result.match_analysis.advantages || []).map(adv => `<li>${adv}</li>`).join('');
+                        matchDisadvantages.innerHTML = (result.match_analysis.disadvantages || []).map(dis => `<li>${dis}</li>`).join('');
+                        matchSuggestions.innerHTML = (result.match_analysis.suggestions || []).map(sug => `<li>${sug}</li>`).join('');
+                    }
+
+                    // 更新优化建议
+                    const optimizationSuggestions = document.getElementById('optimizationSuggestions');
+                    if (result.suggestions) {
+                        optimizationSuggestions.innerHTML = result.suggestions.map(suggestion => `
+                            <div class="mb-3">
+                                <div class="fw-bold mb-2">优化建议：${suggestion.location || ''}</div>
+                                <div class="mb-2">${suggestion.content || ''}</div>
+                                <div class="text-muted">${suggestion.explanation || ''}</div>
+                                ${suggestion.additional ? `<div class="text-info mt-1">补充建议：${suggestion.additional}</div>` : ''}
+                            </div>
+                        `).join('');
+                    }
+
+                    // 更新模拟面试问题
+                    const mockInterviewDiv = document.getElementById('mockInterview');
+                    if (result.mock_interview) {
+                        mockInterviewDiv.innerHTML = result.mock_interview.map((item, index) => `
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
+                                        ${item.question || ''}
+                                    </button>
+                                </h2>
+                                <div id="collapse${index}" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        <div class="interview-analysis">
+                                            <strong>回答思路：</strong><br>
+                                            ${item.analysis || ''}
+                                        </div>
+                                        <div class="interview-example mt-3">
+                                            <strong>示例回答：</strong><br>
+                                            ${item.example || ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+
+                    // 显示结果
+                    document.getElementById('analysisResult').style.display = 'block';
+                } catch (error) {
+                    console.error('Error processing result:', error);
+                    throw new Error('分析结果处理失败，请重试');
+                }
+            } catch (error) {
+                alert(error.message || '分析失败，请重试');
+                console.error('Error:', error);
+            } finally {
+                document.querySelector('.loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
