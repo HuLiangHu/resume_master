@@ -30,10 +30,13 @@ pip install -r requirements.txt
 ```
 
 3. 配置环境变量
-创建 `.env` 文件并添加以下配置：
-```
-DEEPSEEK_API_KEY=your_api_key
-DEEPSEEK_BASE_URL=your_base_url
+```bash
+# 复制环境变量示例文件
+cp .env.example .env
+
+# 编辑 .env 文件，填入你的 API 密钥和基础 URL
+DEEPSEEK_API_KEY=your_api_key_here
+DEEPSEEK_BASE_URL=your_base_url_here
 ```
 
 4. 运行项目
@@ -55,6 +58,7 @@ python app.py
 - 确保上传的简历文件小于 16MB
 - 建议提供详细的职位描述以获得更准确的匹配度分析
 - 系统支持中英文简历分析
+- 请妥善保管你的 API 密钥，不要将其提交到代码仓库
 
 ## 贡献指南
 

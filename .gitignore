@@ -34,7 +34,7 @@ ENV/
 # Project specific
 uploads/
 *.log
-
+config.py
 
 # OS specific
 .DS_Store

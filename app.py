@@ -5,9 +5,12 @@ import requests
 import PyPDF2
 import docx
 from openai import OpenAI
-from config import DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL, GOOD_RESUME_RECOMMEND
 import json
-            
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -17,8 +20,8 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # 初始化 DeepSeek 客户端
 client = OpenAI(
-    api_key=DEEPSEEK_API_KEY,
-    base_url=DEEPSEEK_BASE_URL
+    api_key=os.getenv('DEEPSEEK_API_KEY'),
+    base_url=os.getenv('DEEPSEEK_BASE_URL')
 )
 
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
@@ -105,7 +108,7 @@ def analyze_resume(resume_text, jd_text):
         {{
             "question": "面试问题",
             "analysis": "回答思路",
-            "example": "示例回答，结合岗位要求和简历内容"
+            "example": "示例回答"
         }}
     ]
 }}"""
@@ -211,4 +214,4 @@ def upload_file():
         return jsonify({'error': f'保存文件时发生错误: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5000)
